@@ -4,4 +4,4 @@
 2) The users variable is applied to the ListView.builder and the dates in it are created in the ListTile.
 3) Whenever I click on the FloatingActionButton I pass the fetchUsers() function to the FloatingActionButton so that the dates are displayed on the screen.
 <img src="assets/without_data.png" width="150">
-<img src="assets/data.png.png" width="150">
+<img src="assets/data.png" width="150">
