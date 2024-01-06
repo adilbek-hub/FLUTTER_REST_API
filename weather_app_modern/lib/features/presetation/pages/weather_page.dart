@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:weather_app_modern/constants/api_const.dart';
 import 'package:weather_app_modern/constants/app_text_styles.dart';
+import 'package:weather_app_modern/features/data/model.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -9,99 +12,140 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
+  Future<Weather?> getWeather() async {
+    Dio dio = Dio();
+    final result = await dio.get(ApiConst.apiWeather);
+    if (result.statusCode == 200) {
+      final weather = Weather(
+        cityName: result.data['name'],
+        temp: result.data['main']['temp'],
+        description: result.data['weather'][0]['description'],
+      );
+      return weather;
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getWeather();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/bg_image.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Bishkek',
-                style: cityTextStyle,
+        body: FutureBuilder(
+      future: getWeather(),
+      builder: (c, sn) {
+        final weather = sn.data;
+        if (sn.connectionState == ConnectionState.none) {
+          return Text('Not Connection');
+        } else if (sn.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (sn.connectionState == ConnectionState.done) {
+          if (sn.hasError) {
+            return Text('Error: ${sn.error}');
+          } else if (sn.hasData) {
+            return Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/bg_image.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-              const Text(
-                '19°',
-                style: degreeTextStyle,
-              ),
-              const Text(
-                'Mostly clear',
-                style: clearTextStyle,
-              ),
-              Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 80,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      weather!.cityName,
+                      style: cityTextStyle,
                     ),
-                    child: Image.asset('assets/home.png'),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 270,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
+                    Text(
+                      "${(weather.temp - 273.1).toInt()}°",
+                      style: degreeTextStyle,
+                    ),
+                    Text(
+                      weather.description,
+                      style: clearTextStyle,
+                    ),
+                    Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 80,
+                          ),
+                          child: Image.asset('assets/home.png'),
                         ),
-                        child: Column(
-                          children: [
-                            _tabBar,
-                            SizedBox(
+                        Positioned(
+                          bottom: 20,
+                          child: DefaultTabController(
+                            length: 2,
+                            child: Container(
                               width: MediaQuery.of(context).size.width,
-                              height: 222,
-                              child: TabBarView(children: [
-                                Container(
+                              height: 270,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                children: [
+                                  _tabBar,
+                                  SizedBox(
                                     width: MediaQuery.of(context).size.width,
-                                    height: 300,
-                                    color: Colors.transparent,
-                                    child: const Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            HearlyForcastCard(),
-                                            HearlyForcastCard(),
-                                            HearlyForcastCard(),
-                                            HearlyForcastCard(),
-                                            HearlyForcastCard(),
-                                          ],
-                                        )
-                                      ],
-                                    )),
-                                Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: 300,
-                                  color: Colors.green,
-                                  child: const Icon(Icons.abc_outlined),
-                                )
-                              ]),
-                            )
-                          ],
-                        ),
-                      ),
+                                    height: 222,
+                                    child: TabBarView(children: [
+                                      Container(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          height: 300,
+                                          color: Colors.transparent,
+                                          child: const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  HearlyForcastCard(),
+                                                  HearlyForcastCard(),
+                                                  HearlyForcastCard(),
+                                                  HearlyForcastCard(),
+                                                  HearlyForcastCard(),
+                                                ],
+                                              )
+                                            ],
+                                          )),
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        height: 300,
+                                        color: Colors.green,
+                                        child: const Icon(Icons.abc_outlined),
+                                      )
+                                    ]),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            );
+          } else {
+            return Text('Unknown Error');
+          }
+        } else {
+          return Text('Unknown Error');
+        }
+      },
+    ));
   }
 
   TabBar get _tabBar {
