@@ -6,9 +6,9 @@ import 'package:news_app_free2/features/data/model.dart';
 import '../../constants/api_const.dart';
 
 class DataRepo {
-  Future<NewsModel?> fetchData() async {
+  Future<NewsModel?> fetchNews([String? domain]) async {
     try {
-      final response = await http.get(Uri.parse(ApiConst.newsApi));
+      final response = await http.get(Uri.parse(ApiConst.newsApi(domain)));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final topNews = NewsModel.fromJson(data);

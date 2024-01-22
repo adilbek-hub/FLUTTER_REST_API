@@ -25,7 +25,7 @@ class Article {
   String url;
   String? urlToImage;
   DateTime publishedAt;
-  String content;
+  String? content;
 
   Article({
     required this.source,

@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:news_app_free2/features/data/countries_model.dart';
 import 'package:news_app_free2/features/data/model.dart';
 import 'package:news_app_free2/features/data/service.dart';
 
@@ -12,8 +12,10 @@ class NewsPage extends StatefulWidget {
 
 class _NewsPageState extends State<NewsPage> {
   NewsModel? topNews;
-  Future<void> fetchData() async {
-    topNews = await DataRepo().fetchData();
+  Future<void> fetchData([String? domain]) async {
+    topNews = null;
+    setState(() {});
+    topNews = await DataRepo().fetchNews(domain);
     setState(() {});
   }
 
@@ -28,6 +30,16 @@ class _NewsPageState extends State<NewsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('NewsPage'),
+        actions: [
+          PopupMenuButton<Countries>(onSelected: (Countries items) async {
+            await fetchData(items.domain);
+          }, itemBuilder: (BuildContext context) {
+            return countries
+                .map((e) =>
+                    PopupMenuItem<Countries>(value: e, child: Text(e.name)))
+                .toList();
+          })
+        ],
       ),
       body: topNews == null
           ? const Center(child: CircularProgressIndicator())
@@ -39,8 +51,14 @@ class _NewsPageState extends State<NewsPage> {
                   child: Row(
                     children: [
                       Expanded(
-                          flex: 2, child: Image.network(news.urlToImage ?? '')),
-                      Expanded(flex: 3, child: Text(news.title)),
+                        flex: 2,
+                        child: Image.network(news.urlToImage ?? ''),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        flex: 3,
+                        child: Text(news.title),
+                      ),
                     ],
                   ),
                 );
